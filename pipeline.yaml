@@ -7,8 +7,9 @@ spec:
     - name: pipeline-workspace
     - name: dockerconfig-ws
   params:
-    - name: build-image
     - name: repo-url
+    - name: app-name
+      default: tax-calculator
     - name: branch
       default: main
   tasks:
@@ -33,4 +34,34 @@ spec:
       - name: revision
         value: $(params.branch)
       runAfter:
-        - init
+        - init      
+    - name: npminstall
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      taskRef:
+        name: npm
+      runAfter:
+        - clone
+    - name: tests
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      taskRef:
+        name: jasmine
+      runAfter:
+        - npminstall
+    - name: build
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+        - name: dockerconfig
+          workspace: dockerconfig-ws
+      taskRef:
+        name: buildah
+        kind: ClusterTask
+      params:
+      - name: IMAGE
+        value: "us.icr.io/$(context.pipelineRun.namespace)/$(params.app-name)"
+      runAfter:
+        - tests
