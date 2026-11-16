@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: juphc-tc-pipeline-run-
+spec:
+  serviceAccountName: pipeline
+  pipelineRef:
+    name: juphc-tc-pipeline
+  params:
+    - name: repo-url
+      value: "https://github.com/ibm-developer-skills-network/zntwk-tax_calculator.git"
+    - name: branch
+      value: "main"
+    - name: app-name
+      value: "tax-calculator"
+  workspaces:
+  - name: pipeline-workspace
+    persistentVolumeClaim:
+      claimName: pipelinerun-pvc
+  - name: dockerconfig-ws
+    secret:
+      secretName: docker-reg-creds
